@@ -288,7 +288,16 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
         params.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
         if (!params.getSupportedFocusModes().isEmpty()) {
-            params.setFocusMode(params.getSupportedFocusModes().get(0));
+
+            if (params.getSupportedFocusModes().contains(
+                    Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if (params.getSupportedFocusModes().contains(
+                    Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            } else {
+                params.setFocusMode(params.getSupportedFocusModes().get(0));
+            }
         }
         mCamera.setParameters(params);
 
@@ -375,8 +384,61 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
         return closestRange;
     }
 
+    private void setZoom(int zoom) {
+        Camera.Parameters mParameters = mCamera.getParameters();
+        if (zoom <= mParameters.getMaxZoom()) {
+            mParameters.setZoom(zoom);
+        } else {
+            mParameters.setZoom(mParameters.getMaxZoom());
+        }
+        mCamera.setParameters(mParameters);
+    }
+
+    private int getZoom() {
+        if(mCamera== null) return 1;
+        return mCamera.getParameters().getZoom();
+    }
+
+    private List<Integer> mZoomRatios = null;
+    public boolean isZoomSupported() {
+        if (mCamera != null) {
+            mZoomRatios = mCamera.getParameters().getZoomRatios();
+            return mCamera.getParameters().isZoomSupported();
+        } else
+            return false;
+    }
+
+    public void pinch2Zoom(float scaleFactor) {
+        if (null != mZoomRatios) {
+            int zoomFactor = getZoom();
+            float zoomRatio = mZoomRatios.get(zoomFactor) / 100f;
+            zoomRatio *= scaleFactor;
+            if (zoomRatio > 1.0f) {
+                if (scaleFactor > 1.0f) {
+                    for (int i = zoomFactor; i < mZoomRatios.size(); i++) {
+                        Double zoom = mZoomRatios.get(i) / 100.0;
+                        if (zoom >= zoomRatio) {
+                            setZoom(i);
+                            break;
+                        }
+                    }
+                } else {
+                    for (int i = zoomFactor; i > 0; i--) {
+                        Double zoom = mZoomRatios.get(i) / 100.0;
+                        if (zoom <= zoomRatio) {
+                            setZoom(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public interface PreviewCallback {
 
         void onGetRgbaFrame(byte[] data, int width, int height);
     }
+
+
 }

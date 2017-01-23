@@ -10,6 +10,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -43,6 +45,9 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
     private String recPath = Environment.getExternalStorageDirectory().getPath() + "/test.mp4";
 
     private SrsPublisher mPublisher;
+    // Zoom
+    private ScaleGestureDetector scaleGestureDetector;
+    private SrsCameraView srsCameraView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +72,22 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         btnRecord = (Button) findViewById(R.id.record);
         btnSwitchEncoder = (Button) findViewById(R.id.swEnc);
 
-        mPublisher = new SrsPublisher((SrsCameraView) findViewById(R.id.glsurfaceview_camera));
+
+        srsCameraView = (SrsCameraView) findViewById(R.id.glsurfaceview_camera);
+        // the scaleGestureDetector is needed for pinch to zoom.
+        if (null == scaleGestureDetector) {
+            scaleGestureDetector = new ScaleGestureDetector(getBaseContext(), new ScaleGestureListener());
+            srsCameraView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (scaleGestureDetector != null) {
+                        scaleGestureDetector.onTouchEvent(event);
+                    }
+                    return true;
+                }
+            });
+        }
+        mPublisher = new SrsPublisher(srsCameraView);
         mPublisher.setEncodeHandler(new SrsEncodeHandler(this));
         mPublisher.setRtmpHandler(new RtmpHandler(this));
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
@@ -405,5 +425,17 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
     @Override
     public void onEncodeIllegalArgumentException(IllegalArgumentException e) {
         handleException(e);
+    }
+
+    private class ScaleGestureListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            if (null != srsCameraView) {
+                if (srsCameraView.isZoomSupported()) {
+                    srsCameraView.pinch2Zoom(detector.getScaleFactor());
+                }
+            }
+            return true;
+        }
     }
 }
