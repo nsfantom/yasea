@@ -210,16 +210,16 @@ public class SrsPublisher {
     }
 
     public void switchCameraFace(int id) {
+        mCameraView.stopCamera();
+        mCameraView.setCameraId(id);
         if (mEncoder.isEnabled()) {
-            mCameraView.stopCamera();
-            mCameraView.setCameraId(id);
             if (id == 0) {
                 mEncoder.setCameraBackFace();
             } else {
                 mEncoder.setCameraFrontFace();
             }
-            mCameraView.startCamera();
         }
+        mCameraView.startCamera();
     }
 
     private void startAudio() {
