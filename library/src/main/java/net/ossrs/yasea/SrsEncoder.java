@@ -8,6 +8,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.util.Log;
 
 import java.io.IOException;
@@ -160,6 +161,9 @@ public class SrsEncoder {
         videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, vBitrate);
         videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, VFPS);
         videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, VGOP / VFPS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            videoFormat.setInteger(MediaFormat.KEY_INTRA_REFRESH_PERIOD,1);
+        }
         vencoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         // add the video tracker to muxer.
         videoFlvTrack = flvMuxer.addTrack(videoFormat);
