@@ -4,10 +4,13 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -91,7 +94,9 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mPublisher.setEncodeHandler(new SrsEncodeHandler(this));
         mPublisher.setRtmpHandler(new RtmpHandler(this));
         mPublisher.setRecordHandler(new SrsRecordHandler(this));
-        mPublisher.setPreviewResolution(640, 480);
+
+        int[] prefWH = getPrefWH();
+        mPublisher.setPreviewResolution(prefWH[0],prefWH[1]);
         mPublisher.setOutputResolution(720, 1280);
         mPublisher.setVideoHDMode();
         mPublisher.startCamera();
@@ -160,6 +165,12 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
                 }
             }
         });
+    }
+
+    private int[] getPrefWH(){
+        DisplayMetrics metrics = new DisplayMetrics();
+        this.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+            return new int[]{metrics.widthPixels, metrics.heightPixels};
     }
 
     @Override
@@ -262,8 +273,10 @@ public class MainActivity extends AppCompatActivity implements RtmpHandler.RtmpL
         mPublisher.stopRecord();
         btnRecord.setText("record");
         mPublisher.setScreenOrientation(newConfig.orientation);
+        int[] prefWH = getPrefWH();
+        mPublisher.setPreviewResolution(prefWH[0],prefWH[1]);
+        mPublisher.startCamera();
         if (btnPublish.getText().toString().contentEquals("stop")) {
-            mPublisher.startCamera();
             mPublisher.startEncode();
         }
     }
