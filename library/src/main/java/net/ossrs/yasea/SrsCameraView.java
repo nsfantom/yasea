@@ -324,7 +324,6 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
     }
 
     private Camera openCamera() {
-        Camera camera;
         if (mCamId < 0) {
             Camera.CameraInfo info = new Camera.CameraInfo();
             int numCameras = Camera.getNumberOfCameras();
@@ -347,8 +346,7 @@ public class SrsCameraView extends GLSurfaceView implements GLSurfaceView.Render
                 mCamId = 0;
             }
         }
-        camera = Camera.open(mCamId);
-        return camera;
+        return Camera.open(mCamId);
     }
 
     private Camera.Size adaptPreviewResolution(Camera.Size resolution) {
